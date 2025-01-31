@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.U2D;
-using UnityEngine.UIElements;
 
 public class TileManager : MonoBehaviour
 {
@@ -26,6 +24,7 @@ public class TileManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        // init letter prefabs
         for (int i = 0; i < 26; i++)
         {
             letterPrefabs[i] = Instantiate(tilePrefab);
@@ -38,6 +37,18 @@ public class TileManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Generate random tile
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            char letter = GetComponent<WordChecker>().RandomLetter();
+            var tile = Instantiate(letterPrefabs[letter - 'A']);
+            tile.transform.position = GetMouseGridPosition();
+            tile.SetActive(true);
+            placedTiles.Add(tile);
+
+            GetComponent<WordReader>().ReadWords();
+        }
+
         // Selected tile follows cursor
         if (selectedTile != null)
         {
@@ -86,7 +97,7 @@ public class TileManager : MonoBehaviour
         }
 
         // Check if all tiles are connected
-        if (placedTiles.Count == 0 || AreAllTilesConnected())
+        if (AreAllTilesConnected() || placedTiles.Count == 0)
         {
             ConnectionAlert.SetActive(false);
         }
@@ -153,11 +164,6 @@ public class TileManager : MonoBehaviour
             }
         }
         return null;
-    }
-
-    public static void Restart()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     bool AreAllTilesConnected()

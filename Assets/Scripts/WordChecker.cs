@@ -1,15 +1,15 @@
 using Microsoft.Data.Sqlite;
-using System;
-using TMPro;
 using UnityEngine;
 
 public class WordChecker : MonoBehaviour
 {
+    const string connectionString = "Data Source=Assets\\NWL2023.db";
+    static SqliteConnection connection = new SqliteConnection(connectionString);
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
+        connection.Open();
     }
 
     // Update is called once per frame
@@ -18,44 +18,60 @@ public class WordChecker : MonoBehaviour
 
     }
 
-    public bool CheckWord(string searchWord)
+    public bool CheckWord(string word)
     {
-        if (searchWord.Length == 1)
+        if (word.Length == 1)
         {
             return true;
         }
-
-        string connectionString = "Data Source=Assets\\NWL2023.db";
-        SqliteConnection connection = new SqliteConnection(connectionString);
-        connection.Open();
 
         var command = connection.CreateCommand();
         command.CommandText = "SELECT * FROM words WHERE word=@searchWord";
-        command.Parameters.AddWithValue("@searchWord", searchWord);
+        command.Parameters.AddWithValue("@searchWord", word);
 
-        Debug.Log("Executing query: " + searchWord);
+        Debug.Log("Executing query: " + word);
 
-        using (var reader = command.ExecuteReader())
+        var reader = command.ExecuteReader();
+        if (!reader.HasRows)
         {
-            if (!reader.HasRows)
-            {
-                Debug.Log("No results found");
-                return false;
-            }
-
-            while (reader.Read())
-            {
-                // Get values by column name instead of index for better reliability
-                var word = reader["word"]?.ToString();
-                var definition = reader["definition"]?.ToString();
-                Debug.Log($"Word: {word}, Definition: {definition}");
-            }
-            return true;
+            Debug.Log("No results found");
+            return false;
         }
+
+        while (reader.Read())
+        {
+            var definition = reader["definition"]?.ToString();
+            Debug.Log($"Word: {word}, Definition: {definition}");
+        }
+        return true;
     }
 
-    //public string RandomWord()
-    //{
+    public string RandomWord()
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT * FROM words ORDER BY RANDOM() LIMIT 1";
 
-    //}
+        var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            var word = reader["word"]?.ToString();
+            var definition = reader["definition"]?.ToString();
+            Debug.Log($"Word: {word}, Definition: {definition}");
+            return word;
+        }
+
+        Debug.Log("No results found");
+        return "";
+    }
+
+    // get random char from RandomWord()
+    public char RandomLetter()
+    {
+        string word = RandomWord();
+        if (word.Length > 0)
+        {
+            return word[Random.Range(0, word.Length)];
+        }
+        return ' ';
+    }
 }
