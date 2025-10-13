@@ -40,7 +40,7 @@ public class TileManager : MonoBehaviour
         // Generate random tile
         if (Input.GetKeyDown(KeyCode.R))
         {
-            char letter = GetComponent<WordChecker>().RandomLetter();
+            char letter = WordChecker.RandomLetter();
             var tile = Instantiate(letterPrefabs[letter - 'A']);
             tile.transform.position = GetMouseGridPosition();
             tile.SetActive(true);
@@ -97,7 +97,7 @@ public class TileManager : MonoBehaviour
         }
 
         // Check if all tiles are connected
-        if (AreAllTilesConnected() || placedTiles.Count == 0)
+        if (AreAllTilesConnected() || placedTiles.Count == 0 || WordReader.IncorrectCount > 0)
         {
             ConnectionAlert.SetActive(false);
         }

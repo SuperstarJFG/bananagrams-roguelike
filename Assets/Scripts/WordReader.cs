@@ -6,7 +6,9 @@ public class WordReader : MonoBehaviour
     TileManager tileManager;
 
     HashSet<List<GameObject>> lines;
-    HashSet<List<GameObject>> incorrectLines;
+    static HashSet<List<GameObject>> incorrectLines;
+
+    public static int IncorrectCount => incorrectLines.Count;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -34,7 +36,7 @@ public class WordReader : MonoBehaviour
         // Print results and set colors
         foreach (GameObject tile in tileManager.placedTiles)
         {
-            tile.GetComponent<SpriteRenderer>().color = Color.white;
+            SetCorrect(tile, true);
         }
         if (incorrectLines.Count == 0)
         {
@@ -49,8 +51,7 @@ public class WordReader : MonoBehaviour
                 foreach (GameObject letter in line)
                 {
                     word += letter.GetComponent<LetterController>().letter;
-
-                    letter.GetComponent<SpriteRenderer>().color = Color.red;
+                    SetCorrect(letter, false);
                 }
                 if (!words.Contains(word))
                 {
@@ -59,6 +60,11 @@ public class WordReader : MonoBehaviour
             }
             Debug.LogError("Incorrect words: " + words);
         }
+    }
+
+    void SetCorrect(GameObject tile, bool correct)
+    {
+        tile.GetComponent<SpriteRenderer>().color = correct ? Color.white : Color.red;
     }
 
     void LinesFromTile(GameObject tile)

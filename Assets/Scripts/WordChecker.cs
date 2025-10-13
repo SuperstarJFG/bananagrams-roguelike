@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class WordChecker : MonoBehaviour
@@ -9,7 +10,7 @@ public class WordChecker : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        connection.Open();
+
     }
 
     // Update is called once per frame
@@ -29,7 +30,7 @@ public class WordChecker : MonoBehaviour
         command.CommandText = "SELECT * FROM words WHERE word=@searchWord";
         command.Parameters.AddWithValue("@searchWord", word);
 
-        Debug.Log("Executing query: " + word);
+        //Debug.Log("Executing query: " + word);
 
         var reader = command.ExecuteReader();
         if (!reader.HasRows)
@@ -41,34 +42,42 @@ public class WordChecker : MonoBehaviour
         while (reader.Read())
         {
             var definition = reader["definition"]?.ToString();
-            Debug.Log($"Word: {word}, Definition: {definition}");
+            //Debug.Log($"Word: {word}, Definition: {definition}");
         }
         return true;
     }
 
-    public string RandomWord()
+    public static string RandomWord()
     {
-        var command = connection.CreateCommand();
-        command.CommandText = "SELECT * FROM words ORDER BY RANDOM() LIMIT 1";
-
-        var reader = command.ExecuteReader();
-        while (reader.Read())
+        if (connection.State != System.Data.ConnectionState.Open)
         {
-            var word = reader["word"]?.ToString();
-            var definition = reader["definition"]?.ToString();
-            Debug.Log($"Word: {word}, Definition: {definition}");
-            return word;
+            connection.Open();
         }
 
-        Debug.Log("No results found");
+        using (var command = connection.CreateCommand())
+        {
+            command.CommandText = "SELECT * FROM words ORDER BY RANDOM() LIMIT 1";
+            using (var reader = command.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    var word = reader["word"]?.ToString();
+                    var definition = reader["definition"]?.ToString();
+                    //Debug.Log($"Word: {word}, Definition: {definition}");
+                    return word;
+                }
+            }
+        }
+
+        //Debug.Log("No results found");
         return "";
     }
 
     // get random char from RandomWord()
-    public char RandomLetter()
+    public static char RandomLetter()
     {
         string word = RandomWord();
-        if (word.Length > 0)
+        if (!string.IsNullOrEmpty(word))
         {
             return word[Random.Range(0, word.Length)];
         }
